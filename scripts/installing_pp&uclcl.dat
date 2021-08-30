@@ -1,0 +1,176 @@
+by Pablo Motta
+Instalation guide for PseudoPower and UCLCL code
+Recomended gfortran and gcc 7.5
+
+OPEN-MPI
+wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.0.tar.bz2
+tar -xjvf openmpi-4.0.0.tar.bz2 
+rm openmpi-4.0.0.tar.bz2 
+cd openmpi-4.0.0/
+./configure FC=/usr/bin/gfortran
+make
+sudo make install
+cd
+vi .bashrc
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+<Esc> > :w! :q
+source .bashrc
+cd open-mpi
+cd examples
+make
+mirun -np 4 hello_c
+
+
+CFITSTIO-3.37
+Download from https://packages.ubuntu.com/source/xenial/cfitsio/
+tar -zxf cfitsio_3.370.orig.tar.gz
+cd cfitsio-3.37
+./configure
+make
+make install
+
+
+HEALPIX-3.11
+Download from https://sourceforge.net/projects/healpix/files/Healpix_3.11/Healpix_3.11_2013Apr24.tar.gz/download?use_mirror=phoenixnap&r=&use_mirror=phoenixnap
+tar -zxf Healpix_3.11_2013Apr24.tar.gz
+cd Healix_3.11
+./configure
+$ 4
+$ < insert location of cfitsio >
+$ < press enter  > 
+$ <  2 for generic_gcc >
+$ 0
+$ sudo make
+
+CMAKE
+baixar de https://cmake.org/download/
+tar -zxf cmake-3.19.3.tar.gz
+cd cmake-3.19.3
+./bootstrap && make && sudo make install
+sudo cp /usr/local/include/ /usr/include/ -r
+sudo cp /usr/local/lib/ /usr/lib/ -r
+sudo cp /usr/local/bin/ /usr/bin/ -r
+
+
+LIBGP 
+git clone https://github.com/mblum/libgp
+cd libgp
+mkdir build
+cd build
+cmake ..
+make
+
+CLASS
+git clone https://github.com/lesgourg/class_public
+git checkout fb19e3eb94df6931e92494716dcc10accf88ef04
+cd class_public/
+make clean
+make 
+./class explanatory.ini
+
+
+
+PLANCK LIKELIHOOD 
+wget https://irsa.ipac.caltech.edu/data/Planck/release_2/software/COM_Likelihood_Code-v2.0.R2.00.tar.bz2
+wget https://irsa.ipac.caltech.edu/data/Planck/release_2/software/COM_Likelihood_Data-baseline_R2.00.tar.gz
+tar -zxvf COM_Likelihood_Data-baseline_R2.00.tar.gz
+tar -xjvf COM_Likelihood_Code-v2.0.R2.00.tar.bz2
+cd plc-2.0
+python2 waf configure --install_all_deps --cfitsio_prefix=/home/pablo/codes/cfitsio-3.37
+python2 waf install
+for testing:
+$ cd bin/ (where is located clik_example_C, check with ls)
+$ clik_example_C ../../plc_2.0/hi_l/plik/plik_dx11dr2_HM_v18_TT.clik/ 
+
+
+JLA LIKELIHOOD
+Download from http://supernovae.in2p3.fr/sdss_snls_jla/ReadMe.html 
+tar -xvzf jla_likelihood_v6.tgz
+edit your makefile with your class path
+Open  data/jla.dataset and complete correctly the full paths 
+cd jla_likelihood_v6
+make
+make test_jla
+./test_jla ( should get 682.9 and 33.62)
+
+
+PLINY
+git clone https://github.com/Astrophysics-UCL/pliny
+cd pliny
+git checkout d05861e1dbad9fabdcd0a06e733dd6f3edf6dd0a
+mkdir build
+cd build
+cmake .. "-DCMAKE_LIBGP_ROOT=/home/pablo/codes/libgp"
+make
+
+MULTINEST
+git clone https://github.com/JohannesBuchner/MultiNest
+cd MultiNest
+cd build
+cmake .. 
+make
+sudo make install
+
+POLYCHORD
+git clone https://github.com/PolyChord/PolyChordLite
+cd PolyChordLite
+make COMPILER_TYPE=gnu
+
+ALTERBBN
+Download from https://alterbbn.hepforge.org/ 
+tar -xvzf alterbbn_v2.2.tgz
+cd alterbbn_v2.2
+make
+make stand_cosmo.c
+make alter_eta.c
+make alter_etannutau.c
+make alter_neutrinos.c
+make alter_phi.c
+make alter_reheating.c
+make alter_standmod.c
+make alter_wimps.c
+
+UCLWIG3J
+gitclone https://github.com/Astrophysics-UCL/UCLWig3j
+make
+
+PSEUDOPOWER
+git clone https://github.com/Astrophysics-UCL/PseudoPower
+git checkout -m pmotta-version
+edit the make file:
+GSL_INC_DIR=usr/local/include/gsl
+GSL_LIB_DIR=/usr/local/lib
+CFITSIO_LIB_DIR=/home/pablo/codes/cfitsio-3.37
+UCLWIG3J_INC_DIR=/home/pablo/codes/UCLWig3j
+HEALPIX_INC_DIR=/home/pablo/codes/Healpix_3.11/src/cxx/generic_gcc/include
+HEALPIX_LIB_DIR=/home/pablo/codes/Healpix_3.11/src/cxx/generic_gcc/lib
+cd PseudoPower
+make 
+
+GSL
+git clone git://git.savannah.gnu.org/gsl.git
+git checkout 0b8a3d7cc20e5cdb65307b46d5670a0460280d1d
+./autogen.sh
+./configure --enable-maintainer-mode
+make
+sudo make install
+
+
+UCLCL 
+git clone https://github.com/Astrophysics-UCL/uclcl.git
+git checkout -m paramest-bingo
+mkdir build
+cd build
+cmake .. "-DMULTINEST_ROOT=/home/pablo/codes/MultiNest" "-DPOLYCHORD_ROOT=/home/pablo/codes/PolyChordLite" "-DALTERBBN_ROOT=/home/pablo/codes/alterbbn_v2.2" "-DCFITSIO_ROOT=/home/pablo/codes/cfitsio-3.37" "-DPliny_ROOT=/home/pablo/codes/pliny" "-DCMAKE_LIBGP_ROOT=/home/pablo/codes/libgp" "-DPlanckLikelihood_ROOT=/home/pablo/codes/plc-2.0" "-DENABLE_PARAM_EST=TRUE"  "-DCLASS_ROOT=/home/pablo/codes/class_public" "-DCMAKE_Fortran_COMPILER=/usr/bin/gfortran" "-DCMAKE_VERBOSE_MAKEFILE=TRUE" 
+make uclcl
+make uclcl_param_est
+
+error:
+/usr/bin/c++  -fPIC -Wall -Wfatal-errors -Wextra -std=c++11 -Wno-variadic-macros -fopenmp -g0 -O3 -rdynamic -lgfortran CMakeFiles/uclcl_param_est.dir/uclcl_param_est.cpp.o -o uclcl_param_est   -L/home/pablo/codes/plc-2.0/lib  -Wl,-rpath,/usr/local/lib:/home/pablo/codes/plc-2.0/lib /home/pablo/codes/libgp/build/libgp.a ../uclcl/external/planckLikelihoodInterface/libplanck_interface.a ../uclcl/external/class_adaptor/libclass_adaptor.a /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0 /usr/local/lib/libgsl.so /usr/local/lib/libgslcblas.so /home/pablo/codes/class_public/libclass.a -lfftw3 -lfftw3l -lfftw3f -lclik /usr/local/lib/libmpi.so /usr/local/lib/libmpi.so /home/pablo/codes/cfitsio-3.37/lib/libcfitsio.a /home/pablo/codes/alterbbn_v2.2/src/libbbn.a ../uclcl/external/alterBBN_interface/libalterBBN_interface.a -llapack -lblas ../uclcl/external/jla_likelihood_v6/libjla.a /home/pablo/codes/PolyChordLite/lib/libchord.a /usr/local/lib/libmpi_usempif08.so /usr/local/lib/libmpi_usempi_ignore_tkr.so /usr/local/lib/libmpi_mpifh.so /usr/local/lib/libmpi.so /home/pablo/codes/MultiNest/lib/libmultinest_mpi.a /usr/local/lib/libmpi_usempif08.so /usr/local/lib/libmpi_usempi_ignore_tkr.so /usr/local/lib/libmpi_mpifh.so /usr/local/lib/libmpi.so /home/pablo/codes/cfitsio-3.37/lib/libcfitsio.a -llapack -lblas /home/pablo/codes/PolyChordLite/lib/libchord.a /home/pablo/codes/MultiNest/lib/libmultinest_mpi.a /home/pablo/codes/alterbbn_v2.2/src/libbbn.a
+
+for fixing:
+cd interface (inside of build)
+/usr/bin/c++  -pedantic -fPIC -Wall -Wfatal-errors -Wextra -std=c++11 -Wno-variadic-macros -fopenmp -g0 -O3 -rdynamic -lgfortran CMakeFiles/uclcl_param_est.dir/uclcl_param_est.cpp.o -o uclcl_param_est   -L/home/pablo/codes/plc-2.0/lib  -Wl,-rpath,/usr/local/lib:/home/pablo/codes/plc-2.0/lib /home/pablo/codes/libgp/build/libgp.a ../uclcl/external/planckLikelihoodInterface/libplanck_interface.a ../uclcl/external/class_adaptor/libclass_adaptor.a /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0 /usr/local/lib/libgsl.so /usr/local/lib/libgslcblas.so /home/pablo/codes/class_public/libclass.a -lfftw3 -lfftw3l -lfftw3f -lclik /usr/local/lib/libmpi.so /usr/local/lib/libmpi.so /home/pablo/codes/cfitsio-3.37/lib/libcfitsio.a /home/pablo/codes/alterbbn_v2.2/src/libbbn.a ../uclcl/external/alterBBN_interface/libalterBBN_interface.a -llapack -lblas ../uclcl/external/jla_likelihood_v6/libjla.a /home/pablo/codes/PolyChordLite/lib/libchord.a /usr/local/lib/libmpi_usempif08.so /usr/local/lib/libmpi_usempi_ignore_tkr.so /usr/local/lib/libmpi_mpifh.so /usr/local/lib/libmpi.so /home/pablo/codes/MultiNest/lib/libmultinest_mpi.a /usr/local/lib/libmpi_usempif08.so /usr/local/lib/libmpi_usempi_ignore_tkr.so /usr/local/lib/libmpi_mpifh.so /usr/local/lib/libmpi.so /home/pablo/codes/cfitsio-3.37/lib/libcfitsio.a -llapack -lblas /home/pablo/codes/PolyChordLite/lib/libchord.a /home/pablo/codes/MultiNest/lib/libmultinest_mpi.a /home/pablo/codes/alterbbn_v2.2/src/libbbn.a -lgfortran
+(i.e.: include -fPIC and -lgfortran)
+cd ..
+make uclcl_param_est
